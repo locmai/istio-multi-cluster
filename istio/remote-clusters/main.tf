@@ -137,8 +137,8 @@ resource "kubernetes_secret" "istio_cluster_reader" {
     annotations = {
       "kubernetes.io/service-account.name" = data.kubernetes_service_account.istio_cluster_reader[each.key].metadata.0.name
     }
-    namespace     = local.istio_namespace
-    generate_name = "istio-cluster-reader-"
+    namespace = local.istio_namespace
+    name      = "istio-reader-service-account-istio-remote-secret-token"
   }
 
   type                           = "kubernetes.io/service-account-token"
@@ -161,7 +161,7 @@ resource "kubernetes_secret" "remote_secret" {
     name      = "istio-remote-secret-${each.key}"
     namespace = local.istio_namespace
     annotations = {
-      "networking.istio.io/cluster" = "${each.key}"
+      "networking.istio.io/cluster" = "${split("-", each.key)[1]}"
     }
     labels = {
       "istio/multiCluster" = "true"
