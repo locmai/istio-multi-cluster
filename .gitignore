@@ -3,3 +3,4 @@ config/*.kubeconfig
 *.tfstate
 *.tfstate.backup
 .terraform
+.terraform.lock.hcl
