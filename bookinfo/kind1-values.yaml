@@ -1,0 +1,18 @@
+productpage:
+  enabled: true
+
+details:
+  enabled: true
+
+reviewsV1:
+  enabled: true
+
+reviewsV2:
+  enabled: false
+
+reviewsV3:
+  enabled: false
+
+ratings:
+  enabled: false
+
