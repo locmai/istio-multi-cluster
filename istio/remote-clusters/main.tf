@@ -99,12 +99,11 @@ resource "kubernetes_cluster_role" "istio_cluster_reader" {
   }
 }
 
-resource "kubernetes_service_account" "istio_cluster_reader" {
+data "kubernetes_service_account" "istio_cluster_reader" {
   for_each = var.clusters
   provider = kubernetes.by_kind[each.key]
-
   metadata {
-    name      = "istio-cluster-reader"
+    name      = "istio-reader-service-account"
     namespace = local.istio_namespace
   }
 }
@@ -125,8 +124,8 @@ resource "kubernetes_cluster_role_binding" "istio_cluster_reader" {
 
   subject {
     kind      = "ServiceAccount"
-    name      = kubernetes_service_account.istio_cluster_reader[each.key].metadata.0.name
-    namespace = kubernetes_service_account.istio_cluster_reader[each.key].metadata.0.namespace
+    name      = data.kubernetes_service_account.istio_cluster_reader[each.key].metadata.0.name
+    namespace = data.kubernetes_service_account.istio_cluster_reader[each.key].metadata.0.namespace
   }
 }
 
@@ -136,7 +135,7 @@ resource "kubernetes_secret" "istio_cluster_reader" {
 
   metadata {
     annotations = {
-      "kubernetes.io/service-account.name" = kubernetes_service_account.istio_cluster_reader[each.key].metadata.0.name
+      "kubernetes.io/service-account.name" = data.kubernetes_service_account.istio_cluster_reader[each.key].metadata.0.name
     }
     namespace     = local.istio_namespace
     generate_name = "istio-cluster-reader-"
