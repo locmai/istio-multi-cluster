@@ -1,8 +1,8 @@
 global:
   meshID: multiclustermesh
   multiCluster:
-    clusterName: kind1
-  network: kind1
+    clusterName: kind2
+  network: kind2
 meshConfig:
   defaultConfig:
     proxyMetadata:

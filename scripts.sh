@@ -91,3 +91,9 @@ is_pod_ready() {
     fi
     return 1  # Pod is not ready
 }
+
+tofu_apply() {
+  cd ./istio/remote-clusters
+  tofu init
+  tofu apply -auto-approve
+}
