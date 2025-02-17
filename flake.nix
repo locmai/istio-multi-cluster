@@ -22,10 +22,19 @@
             yq
             kubectl
             opentofu
-            helm
+            kubernetes-helm
             kubectx
             istioctl
           ];
+
+          shellHook = ''
+            echo "Sourcing scripts.sh..."
+            if [ -f ./scripts.sh ]; then
+              source ./scripts.sh
+            else
+              echo "Warning: scripts.sh not found!"
+            fi
+          '';
         };
     });
   };

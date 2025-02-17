@@ -58,7 +58,7 @@ configure_clusters() {
     echo "metallb controller is ready"
     kubectl apply -f ./kind/$cluster-metallb.yaml
     helm upgrade --install istio-base istio/base -n istio-system --set defaultRevision=default --create-namespace
-    helm upgrade --install --create-namespace istiod istio/istiod -n istio-system --wait
+    helm upgrade --install --create-namespace istiod istio/istiod -n istio-system -f ./istio/$cluster-values.yaml --wait
     helm upgrade --install --create-namespace istio-ingress istio/gateway -n istio-ingress --wait
     kubectl apply -f ./istio/eastwest-gateway.yaml kubectl label namespace default istio-injection=enabled
     helm upgrade --install --create-namespace bookinfo ./bookinfo/charts/bookinfo -f ./bookinfo/$cluster-values.yaml -n default --wait
