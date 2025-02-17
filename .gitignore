@@ -1,1 +1,5 @@
 config/*.kubeconfig
+
+*.tfstate
+*.tfstate.backup
+.terraform
