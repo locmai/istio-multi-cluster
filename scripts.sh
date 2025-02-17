@@ -60,7 +60,8 @@ configure_clusters() {
     helm upgrade --install istio-base istio/base -n istio-system --set defaultRevision=default --create-namespace
     helm upgrade --install --create-namespace istiod istio/istiod -n istio-system -f ./istio/$cluster-values.yaml --wait
     helm upgrade --install --create-namespace istio-ingress istio/gateway -n istio-ingress --wait
-    kubectl apply -f ./istio/eastwest-gateway.yaml kubectl label namespace default istio-injection=enabled
+    kubectl apply -f ./istio/eastwest-gateway.yaml 
+    kubectl label namespace default istio-injection=enabled
     helm upgrade --install --create-namespace bookinfo ./bookinfo/charts/bookinfo -f ./bookinfo/$cluster-values.yaml -n default --wait
     echo "$cluster configured"
   done
@@ -96,4 +97,5 @@ tofu_apply() {
   cd ./istio/remote-clusters
   tofu init
   tofu apply -auto-approve
+  cd ../../
 }

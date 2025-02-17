@@ -161,8 +161,11 @@ resource "kubernetes_secret" "remote_secret" {
   metadata {
     name      = "istio-remote-secret-${each.key}"
     namespace = local.istio_namespace
+    annotations = {
+      "networking.istio.io/cluster" = "${each.key}"
+    }
     labels = {
-      "istio/multicluster" = "true"
+      "istio/multiCluster" = "true"
     }
   }
 
@@ -185,7 +188,8 @@ users:
 - name: ${each.key}
   user:
     token: ${kubernetes_secret.istio_cluster_reader[split("-", each.key)[1]].data["token"]}
-    EOT
+preferences: {}
+EOT
   }
 }
 
