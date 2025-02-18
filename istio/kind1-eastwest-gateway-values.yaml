@@ -26,3 +26,5 @@ autoscaling:
   minReplicas: 2
   podDisruptionBudget:
     minAvailable: 1
+env:
+  ISTIO_META_ROUTER_MODE: "sni-dnat"

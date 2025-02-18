@@ -61,7 +61,8 @@ configure_clusters() {
     helm upgrade --install --create-namespace istiod istio/istiod -n istio-system -f ./istio/$cluster-values.yaml --wait
     helm upgrade --install --create-namespace istio-ingress istio/gateway -n istio-ingress --wait
     helm upgrade --install --create-namespace istio-eastwest-gateway istio/gateway -n istio-system -f ./istio/$cluster-eastwest-gateway-values.yaml --wait
-    kubectl apply -f ./istio/eastwest-gateway.yaml 
+    kubectl apply -f ./istio/eastwest-gateway.yaml
+    kubectl apply -f ./istio/peerauthentication.yaml
     kubectl label namespace default istio-injection=enabled
     helm upgrade --install --create-namespace bookinfo ./bookinfo/charts/bookinfo -f ./bookinfo/$cluster-values.yaml -n default --wait
     echo "$cluster configured"
