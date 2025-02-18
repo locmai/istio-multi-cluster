@@ -48,6 +48,8 @@ create_clusters() {
 }
 
 configure_clusters() {
+  helm repo add istio https://istio-release.storage.googleapis.com/charts
+  helm repo update
   for cluster in "${clusters[@]}"; do
     kubectx kind-$cluster
     kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.14.9/config/manifests/metallb-native.yaml
