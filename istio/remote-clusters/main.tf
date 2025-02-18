@@ -3,9 +3,17 @@ locals {
 
   # mock host data
   cluster_host = {
-    "kind1" = "https://127.0.0.1:8443"
-    "kind2" = "https://127.0.0.1:9443"
+    "kind1" = "https://0.0.0.0:8443"
+    "kind2" = "https://0.0.0.0:9443"
   }
+}
+
+data "external" "kind_host" {
+  for_each = var.clusters
+  program = ["bash", "-c", <<EOT
+    docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "${each.key}-control-plane" | jq -R '{kind: .}'
+    EOT
+  ]
 }
 
 resource "kubernetes_cluster_role" "istio_cluster_reader" {
@@ -169,22 +177,22 @@ resource "kubernetes_secret" "remote_secret" {
   }
 
   data = {
-    "${each.key}" = <<EOT
+    "${split("-", each.key)[1]}" = <<EOT
 apiVersion: v1
 kind: Config
-current-context: ${each.key}
+current-context: ${split("-", each.key)[1]}
 clusters:
 - cluster:
     certificate-authority-data: ${base64encode(kubernetes_secret.istio_cluster_reader[split("-", each.key)[1]].data["ca.crt"])}
-  server: ${local.cluster_host[split("-", each.key)[1]]}
-  name: ${each.key}
+    server: https://${data.external.kind_host[split("-", each.key)[1]].result["kind"]}:6443
+  name: ${split("-", each.key)[1]}
 contexts:
 - context:
-    cluster: ${each.key}
-    user: ${each.key}
-  name: ${each.key}
+    cluster: ${split("-", each.key)[1]}
+    user: ${split("-", each.key)[1]}
+  name: ${split("-", each.key)[1]}
 users:
-- name: ${each.key}
+- name: ${split("-", each.key)[1]}
   user:
     token: ${kubernetes_secret.istio_cluster_reader[split("-", each.key)[1]].data["token"]}
 preferences: {}

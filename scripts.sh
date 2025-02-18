@@ -1,6 +1,6 @@
 #!/bin/sh
 
-tools=(kind istioctl kubectl helm kubectx tofu)
+tools=(kind istioctl kubectl helm kubectx tofu docker)
 clusters=(kind1 kind2)
 
 for cluster in "${clusters[@]}"; do
