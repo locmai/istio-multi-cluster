@@ -39,6 +39,7 @@ pre_check() {
 }
 
 create_clusters() {
+  mkdir -p config
   for cluster in "${clusters[@]}"; do
     kind create cluster --config kind/$cluster-kind.yaml
     kind get kubeconfig --name $cluster >config/$cluster.kubeconfig
