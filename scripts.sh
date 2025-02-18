@@ -33,7 +33,7 @@ pre_check() {
     if [[ -f "$config_file" ]]; then
         echo "[✔] Configuration for $cluster is ready."
     else
-        echo "[✖] Configuration for $cluster is missing. Run 'create_clusters' to create the clusters."
+        echo "[✖] Configuration for $cluster is missing. Run 'creae_clusters' to create the clusters."
     fi
   done
 }
