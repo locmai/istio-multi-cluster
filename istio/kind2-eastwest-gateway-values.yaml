@@ -1,0 +1,28 @@
+networkGateway: &clusterName kind2
+labels:
+  app: eastwest-gateway
+  istio: eastwest-gateway
+  topology.istio.io/network: *clusterName
+service:
+  ports:
+    - name: status-port
+      port: 15021
+      targetPort: 15021
+      protocol: TLS
+    - name: tls
+      port: 15443
+      targetPort: 15443
+      protocol: TLS
+    - name: tls-istiod
+      port: 15012
+      targetPort: 15012
+      protocol: TLS
+    - name: tls-webhook
+      port: 15017
+      targetPort: 15017
+      protocol: TLS
+  externalTrafficPolicy: Local
+autoscaling:
+  minReplicas: 2
+  podDisruptionBudget:
+    minAvailable: 1
