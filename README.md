@@ -23,8 +23,8 @@ pre_check
 [✔] kubectx is installed and executable at: /nix/store/4i1g0ihxw4hpw0cj6grsk2xgqma3nzfq-kubectx-0.9.5/bin/kubectx
 [✔] tofu is installed and executable at: /nix/store/bk8lbpai9gckl24971cd7sy86nx65vqp-opentofu-1.9.0/bin/tofu
 [✔] docker is installed and executable at: /run/current-system/sw/bin/docker
-[✖] Configuration for kind1 is missing. Run 'creae_clusters' to create the clusters.
-[✖] Configuration for kind2 is missing. Run 'creae_clusters' to create the clusters.
+[✖] Configuration for kind1 is missing. Run 'create_clusters' to create the clusters.
+[✖] Configuration for kind2 is missing. Run 'create_clusters' to create the clusters.
 ```
 
 
