@@ -1,11 +1,5 @@
 locals {
   istio_namespace = "istio-system"
-
-  # mock host data
-  cluster_host = {
-    "kind1" = "https://0.0.0.0:8443"
-    "kind2" = "https://0.0.0.0:9443"
-  }
 }
 
 data "external" "kind_host" {
