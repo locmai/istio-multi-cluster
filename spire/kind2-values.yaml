@@ -1,0 +1,25 @@
+global:
+  openshift: false
+  spire:
+    trustDomain: kind2.cluster.local
+    clusterName: kind2
+
+    caSubject:
+      country: US
+      organization: kind2
+      commonName: kind2.cluster.local
+
+spire-server:
+  controllerManager:
+    identities:
+      clusterSPIFFEIDs:
+        default:
+          federatesWith:
+            - kind1.cluster.local
+      clusterFederatedTrustDomains:
+        kind1:
+          bundleEndpointProfile:
+            endpointSPIFFEID: spiffe://kind1.cluster.local/spire/server
+            type: https_spiffe
+          bundleEndpointURL: https://spire-server-federation.kind1.cluster.local
+          trustDomain: kind1.cluster.local

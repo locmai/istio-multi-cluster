@@ -7,11 +7,10 @@ for cluster in "${clusters[@]}"; do
   export "$cluster"="kind-$cluster"
 done
 
-init() {
-  echo "Pre-check"
+run() {
   pre_check;
-  echo "Setup Helm"
-  init_helm
+  create_clusters;
+  configure_clusters;
 }
 
 pre_check() {
@@ -31,9 +30,9 @@ pre_check() {
   for cluster in "${clusters[@]}"; do
     config_file="config/${cluster}.kubeconfig"
     if [[ -f "$config_file" ]]; then
-        echo "[✔] Configuration for $cluster is ready."
+        echo "[✔] configuration for $cluster is ready."
     else
-        echo "[✖] Configuration for $cluster is missing. Run 'create_clusters' to create the clusters."
+        echo "[✖] configuration for $cluster is missing. Run 'create_clusters' to create the clusters."
     fi
   done
 }
@@ -48,28 +47,70 @@ create_clusters() {
 }
 
 configure_clusters() {
-  helm repo add istio https://istio-release.storage.googleapis.com/charts
-  helm repo update
+  init_helm
   for cluster in "${clusters[@]}"; do
     kubectx kind-$cluster
-    kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.14.9/config/manifests/metallb-native.yaml
-    echo "Waiting for metallb controller to be ready..."
-    while ! is_pod_ready; do
-        echo "metallb controller is not ready yet. Retrying in 5 seconds..."
-        sleep 5
-    done
-    echo "metallb controller is ready"
-    kubectl apply -f ./kind/$cluster-metallb.yaml
-    helm upgrade --install istio-base istio/base -n istio-system --set defaultRevision=default --create-namespace
-    helm upgrade --install --create-namespace istiod istio/istiod -n istio-system -f ./istio/$cluster-values.yaml --wait
-    helm upgrade --install --create-namespace istio-ingress istio/gateway -n istio-ingress --wait
-    helm upgrade --install --create-namespace istio-eastwest-gateway istio/gateway -n istio-system -f ./istio/$cluster-eastwest-gateway-values.yaml --wait
-    kubectl apply -f ./istio/eastwest-gateway.yaml
-    kubectl apply -f ./istio/peerauthentication.yaml
-    kubectl label namespace default istio-injection=enabled
-    helm upgrade --install --create-namespace bookinfo ./bookinfo/charts/bookinfo -f ./bookinfo/$cluster-values.yaml -n default --wait
-    echo "$cluster configured"
+    install_metallb $cluster
+    install_spire $cluster
+    install_istio $cluster
+    install_apps $cluster
+    echo "$cluster cluster is configured"
   done
+  tofu_apply
+}
+
+init_helm() {
+  helm repo add istio https://istio-release.storage.googleapis.com/charts
+  helm repo add spire https://spiffe.github.io/helm-charts-hardened/
+  helm repo update
+}
+
+install_metallb() {
+  kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.14.9/config/manifests/metallb-native.yaml
+  while ! is_metallb_pod_ready; do
+      echo "metallb controller is not ready yet. Retrying in 5 seconds..."
+      sleep 5
+  done
+  echo "metallb controller is ready"
+  kubectl apply -f ./kind/$cluster-metallb.yaml
+}
+
+is_metallb_pod_ready() {
+    local pod_status
+    pod_status=$(kubectl get pods -l component=controller -n metallb-system -o jsonpath='{.items[*].status.conditions[?(@.type=="Ready")].status}')
+    
+    if [[ "$pod_status" == "True" ]]; then
+        return 0  # Pod is ready
+    fi
+    return 1  # Pod is not ready
+}
+
+install_spire() {
+  helm upgrade --install -n spire-server spire-crds spire/spire-crds --create-namespace
+  kubectl create ns spire-system
+  helm upgrade --install -n spire-server spire spire/spire --create-namespace -f ./spire/all-values.yaml -f ./spire/$1-values.yaml
+}
+
+install_istio() {
+  helm upgrade --install istio-base istio/base -n istio-system --set defaultRevision=default --create-namespace
+  helm upgrade --install --create-namespace istiod istio/istiod -n istio-system -f ./istio/$1-values.yaml --wait
+  helm upgrade --install --create-namespace istio-ingress istio/gateway -n istio-ingress --wait
+  helm upgrade --install --create-namespace istio-eastwest-gateway istio/gateway -n istio-system -f ./istio/$1-eastwest-gateway-values.yaml --wait
+  kubectl apply -f ./istio/all-eastwest-gateway.yaml
+  kubectl apply -f ./istio/all-peerauthentication.yaml
+  kubectl label namespace default istio-injection=enabled
+  echo "istio is ready"
+}
+
+install_apps() {
+  helm upgrade --install --create-namespace bookinfo ./bookinfo/charts/bookinfo -f ./bookinfo/$1-values.yaml -n default --wait
+}
+
+tofu_apply() {
+  cd ./istio/remote-clusters
+  tofu init
+  tofu apply -auto-approve
+  cd ../../
 }
 
 delete_clusters() {
@@ -78,29 +119,4 @@ delete_clusters() {
     rm -f config/$cluster.kubeconfig
     echo "$cluster deleted"
   done
-}
-
-init_helm() {
-  helm repo add istio https://istio-release.storage.googleapis.com/charts
-  helm repo update
-}
-
-LABEL_SELECTOR="component=controller"
-NAMESPACE="metallb-system"
-
-is_pod_ready() {
-    local pod_status
-    pod_status=$(kubectl get pods -l $LABEL_SELECTOR -n $NAMESPACE -o jsonpath='{.items[*].status.conditions[?(@.type=="Ready")].status}')
-    
-    if [[ "$pod_status" == "True" ]]; then
-        return 0  # Pod is ready
-    fi
-    return 1  # Pod is not ready
-}
-
-tofu_apply() {
-  cd ./istio/remote-clusters
-  tofu init
-  tofu apply -auto-approve
-  cd ../../
 }

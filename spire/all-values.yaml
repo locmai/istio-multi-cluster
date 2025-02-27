@@ -1,0 +1,38 @@
+global:
+  openshift: false
+  spire:
+    recommendations:
+      enabled: true
+    ingressControllerType: "ingress-nginx"
+
+spire-agent:
+  enabled: true
+
+spire-server:
+  caTTL: 8760h
+
+  tornjak:
+    enabled: true
+    ingress:
+      enabled: true
+
+  ingress:
+    enabled: true
+
+  federation:
+    enabled: true
+    ingress:
+      enabled: true
+
+spiffe-oidc-discovery-provider:
+  enabled: false
+  ingress:
+    enabled: false
+
+spiffe-csi-driver:
+ enabled: false
+
+tornjak-frontend:
+  enabled: true
+  ingress:
+    enabled: true
